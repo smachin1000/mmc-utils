@@ -105,6 +105,11 @@ static struct Command commands[] = {
 		"Send Sanitize command to the <device>.\nThis will delete the unmapped memory region of the device.",
 	  NULL
 	},
+	{ do_read_delkin_smart_info, -1,
+	  "readsmart", "<device>\n"
+		"Print SMART data from <device>.",
+	  NULL
+	},
 	{ 0, 0, 0, 0 }
 };
 

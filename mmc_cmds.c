@@ -30,6 +30,8 @@
 #include "mmc.h"
 #include "mmc_cmds.h"
 
+#define MMC_GEN_CMD 56
+
 int read_extcsd(int fd, __u8 *ext_csd)
 {
 	int ret = 0;
@@ -1057,5 +1059,69 @@ int do_sanitize(int nargs, char **argv)
 
 	return ret;
 
+}
+
+int read_delkin_smart_info(int fd, __u8 *ext_csd)
+{
+        int ret = 0;
+        struct mmc_ioc_cmd idata;
+        memset(&idata, 0, sizeof(idata));
+        memset(ext_csd, 0, sizeof(__u8) * 512);
+        idata.write_flag = 0;
+        idata.opcode = MMC_GEN_CMD;
+        idata.arg = 0x10 << 1 | 0x01;
+        idata.flags = MMC_RSP_SPI_R1 | MMC_RSP_R1 | MMC_CMD_ADTC;
+        idata.blksz = 512;
+        idata.blocks = 1;
+        mmc_ioc_cmd_set_data(idata, ext_csd);
+
+        ret = ioctl(fd, MMC_IOC_CMD, &idata);
+        if (ret)
+                perror("ioctl");
+
+        return ret;
+}
+
+int do_read_delkin_smart_info(int nargs, char **argv)
+{
+	__u8 smart_data[512];
+        __u16 calculated_remaining_life;
+        __u16 good_block_rate;
+	__u32 power_cycle_count;
+        __u16 max_bad_block_replacement;
+        __u16 abnormal_powerdown_count;
+        int fd, ret;
+        char *device;
+
+        CHECK(nargs != 2, "Usage: mmc readsmart </path/to/mmcblkX>\n",
+                        exit(1));
+
+        device = argv[1];
+
+        fd = open(device, O_RDWR);
+        if (fd < 0) {
+                perror("open");
+                exit(1);
+        }
+	
+	ret = read_delkin_smart_info(fd, smart_data);	
+        if (ret) {
+                fprintf(stderr, "could not read SMART data in %s", device);
+                exit(1);
+        }
+
+        calculated_remaining_life = smart_data[96] << 8 | smart_data[97];
+	good_block_rate = smart_data[64] << 8 | smart_data[65];
+	power_cycle_count = smart_data[112] << 24 | smart_data[113] << 16 | smart_data[114] << 8 | smart_data[115];
+	max_bad_block_replacement = smart_data[16] << 8 | smart_data[17];
+	abnormal_powerdown_count = smart_data[128] << 8 | smart_data[129];
+
+	printf("Calculated remaining life     %d%%\n", calculated_remaining_life / 100);
+	printf("Good block rate               %d%%\n", good_block_rate / 100);
+	printf("Power cycle count             %d\n", power_cycle_count);
+	printf("Maximum bad block replacement %d\n", max_bad_block_replacement);
+	printf("Abnormal power down count     %d\n", abnormal_powerdown_count);
+
+	return ret;
 }
 
