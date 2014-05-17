@@ -1116,8 +1116,8 @@ int do_read_delkin_smart_info(int nargs, char **argv)
 	max_bad_block_replacement = smart_data[16] << 8 | smart_data[17];
 	abnormal_powerdown_count = smart_data[128] << 8 | smart_data[129];
 
-	printf("Calculated remaining life     %d%%\n", calculated_remaining_life / 100);
-	printf("Good block rate               %d%%\n", good_block_rate / 100);
+	printf("Calculated remaining life     %d.%02d%%\n", calculated_remaining_life / 100, calculated_remaining_life % 100);
+	printf("Good block rate               %d.%02d%%\n", good_block_rate / 100, good_block_rate % 100);
 	printf("Power cycle count             %d\n", power_cycle_count);
 	printf("Maximum bad block replacement %d\n", max_bad_block_replacement);
 	printf("Abnormal power down count     %d\n", abnormal_powerdown_count);
