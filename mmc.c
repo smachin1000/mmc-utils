@@ -107,7 +107,7 @@ static struct Command commands[] = {
 	},
 	{ do_read_delkin_smart_info, -1,
 	  "readsmart", "<device>\n"
-		"Print SMART data from <device>.",
+		"Print SMART data from <device>.  Currently only Delkin micro SD cards are supported.",
 	  NULL
 	},
 	{ 0, 0, 0, 0 }
